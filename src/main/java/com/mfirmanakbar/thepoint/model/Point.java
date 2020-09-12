@@ -1,7 +1,11 @@
 package com.mfirmanakbar.thepoint.model;
 
-import com.mfirmanakbar.thepoint.helper.CustomJSONRootName;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import javax.persistence.Id;
 import javax.persistence.Entity;
@@ -18,22 +22,24 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "points")
-@CustomJSONRootName(singular = "point", plural = "points")
 public class Point {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    @JsonProperty("user_id")
     private long userId;
 
+    @JsonProperty("current_point")
     private BigInteger currentPoint;
 
+    @JsonProperty("created_at")
     private Date createdAt;
 
+    @JsonProperty("updated_at")
     private Date updatedAt;
 
+    @JsonProperty("deleted_at")
     private Date deletedAt;
-
-
 }

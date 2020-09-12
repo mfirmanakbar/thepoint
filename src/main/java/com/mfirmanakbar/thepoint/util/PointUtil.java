@@ -5,21 +5,8 @@ import com.mfirmanakbar.thepoint.request.PointRequest;
 
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.Optional;
 
 public class PointUtil {
-
-//    public static Point convertPointRequestToPoint(PointRequest request){
-//
-//        return Point.builder()
-//                //.id(request.getId())
-//                .userId(request.getUserId())
-//                .currentPoint(request.getPoint())
-//                .createdAt(new Date())
-//                .updatedAt(new Date())
-//                .deletedAt(null)
-//                .build();
-//    }
 
     public static Point savePoint(PointRequest request){
 

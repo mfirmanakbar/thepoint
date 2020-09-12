@@ -10,7 +10,6 @@ import java.math.BigInteger;
 @Getter
 public class PointRequest {
 
-    @JsonProperty("id")
     private long id;
 
     @JsonProperty("user_id")
