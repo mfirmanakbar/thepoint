@@ -3,20 +3,42 @@ package com.mfirmanakbar.thepoint.util;
 import com.mfirmanakbar.thepoint.model.Point;
 import com.mfirmanakbar.thepoint.request.PointRequest;
 
+import java.math.BigInteger;
 import java.util.Date;
+import java.util.Optional;
 
 public class PointUtil {
 
-    public static Point convertPointRequestToPoint(PointRequest request){
+//    public static Point convertPointRequestToPoint(PointRequest request){
+//
+//        return Point.builder()
+//                //.id(request.getId())
+//                .userId(request.getUserId())
+//                .currentPoint(request.getPoint())
+//                .createdAt(new Date())
+//                .updatedAt(new Date())
+//                .deletedAt(null)
+//                .build();
+//    }
+
+    public static Point savePoint(PointRequest request){
 
         return Point.builder()
-                //.id(request.getId())
                 .userId(request.getUserId())
                 .currentPoint(request.getPoint())
                 .createdAt(new Date())
                 .updatedAt(new Date())
                 .deletedAt(null)
                 .build();
+    }
+
+    public static BigInteger UpdateCurrentPoint(BigInteger requestPoint, BigInteger currentPoint) {
+        if (currentPoint.compareTo(BigInteger.ZERO) < 0) {
+            currentPoint = currentPoint.subtract(requestPoint);
+        } else {
+            currentPoint = currentPoint.add(requestPoint);
+        }
+        return currentPoint;
     }
 
 }

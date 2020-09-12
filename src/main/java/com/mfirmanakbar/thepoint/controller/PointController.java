@@ -21,9 +21,14 @@ public class PointController {
         return pointService.save(pointRequest);
     }
 
+    @RequestMapping(method = RequestMethod.PATCH)
+    public ResponseEntity<?> updatePoint(@RequestBody PointRequest pointRequest) {
+        return pointService.update(pointRequest);
+    }
+
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<?> getPoint(@RequestBody PointRequest pointRequest) {
-        return pointService.save(pointRequest);
+    public ResponseEntity<?> getAllPoints() {
+        return pointService.findAll();
     }
 
 }
