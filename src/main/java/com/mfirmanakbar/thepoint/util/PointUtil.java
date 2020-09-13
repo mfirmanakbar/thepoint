@@ -1,5 +1,7 @@
 package com.mfirmanakbar.thepoint.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mfirmanakbar.thepoint.model.Point;
 import com.mfirmanakbar.thepoint.request.PointRequest;
 
@@ -7,6 +9,11 @@ import java.math.BigInteger;
 import java.util.Date;
 
 public class PointUtil {
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private PointUtil() {
+    }
 
     public static Point savePoint(PointRequest request){
 
@@ -19,13 +26,17 @@ public class PointUtil {
                 .build();
     }
 
-    public static BigInteger UpdateCurrentPoint(BigInteger requestPoint, BigInteger currentPoint) {
+    public static BigInteger updateCurrentPoint(BigInteger requestPoint, BigInteger currentPoint) {
         if (currentPoint.compareTo(BigInteger.ZERO) < 0) {
             currentPoint = currentPoint.subtract(requestPoint);
         } else {
             currentPoint = currentPoint.add(requestPoint);
         }
         return currentPoint;
+    }
+
+    public static String pointRequestToMsg(Point point) throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(point);
     }
 
 }

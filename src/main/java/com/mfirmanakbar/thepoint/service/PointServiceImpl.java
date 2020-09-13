@@ -1,11 +1,15 @@
 package com.mfirmanakbar.thepoint.service;
 
 import com.mfirmanakbar.thepoint.enumeration.ActionEnum;
+import com.mfirmanakbar.thepoint.messaging.producer.PointProducer;
 import com.mfirmanakbar.thepoint.model.Point;
 import com.mfirmanakbar.thepoint.repository.PointRepository;
 import com.mfirmanakbar.thepoint.request.PointRequest;
 import com.mfirmanakbar.thepoint.util.PointUtil;
+import com.mfirmanakbar.thepoint.util.RabbitUtil;
+import com.mfirmanakbar.thepoint.util.ResponseUtil;
 import com.mfirmanakbar.thepoint.validate.PointValidator;
+import com.rabbitmq.client.Channel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,25 +29,23 @@ public class PointServiceImpl implements PointService {
     @Autowired
     PointRepository pointRepository;
 
+    @Autowired
+    PointProducer pointProducer;
+
     @Override
     public ResponseEntity<?> save(PointRequest request) {
         List<String> errors = validateRequest(request, ActionEnum.SAVE);
         Optional<Point> currentRecord = findPointByUserId(request.getUserId());
 
         if (errors.size() > 0) {
-            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+            return ResponseUtil.response(errors, HttpStatus.BAD_REQUEST);
         }
 
         if (currentRecord.isPresent()) {
-            return new ResponseEntity<>("User ID already registered, please use another User ID.", HttpStatus.CONFLICT);
+            return ResponseUtil.response("User ID already registered, please use another User ID.", HttpStatus.CONFLICT);
         }
 
-        Point saveIt = pointRepository.save(PointUtil.savePoint(request));
-        if (saveIt.getId() > 0) {
-            return new ResponseEntity<>(saveIt, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>("Error when try to save Point", HttpStatus.INTERNAL_SERVER_ERROR);
+        return pushProducer(PointUtil.savePoint(request), ActionEnum.SAVE);
     }
 
     @Override
@@ -52,34 +54,52 @@ public class PointServiceImpl implements PointService {
         Optional<Point> currentRecord = findPointByUserId(request.getUserId());
 
         if (errors.size() > 0) {
-            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+            return ResponseUtil.response(errors, HttpStatus.BAD_REQUEST);
         }
 
         if (!currentRecord.isPresent()) {
-            return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+            return ResponseUtil.response("User not found.", HttpStatus.NOT_FOUND);
         }
 
         Point point = currentRecord.get();
         point.setCurrentPoint(
-                PointUtil.UpdateCurrentPoint(request.getPoint(), point.getCurrentPoint())
+                PointUtil.updateCurrentPoint(request.getPoint(), point.getCurrentPoint())
         );
         point.setUpdatedAt(new Date());
 
-        Point updateIt = pointRepository.save(point);
-        if (updateIt.getId() > 0) {
-            return new ResponseEntity<>(updateIt, HttpStatus.OK);
-        }
+        return pushProducer(point, ActionEnum.UPDATE);
+    }
 
-        return new ResponseEntity<>("Error when try to update Point", HttpStatus.INTERNAL_SERVER_ERROR);
+    private ResponseEntity<?> pushProducer(Point point, ActionEnum actionEnum) {
+        try {
+            pointProducer.sendMessage(PointUtil.pointRequestToMsg(point), actionEnum);
+            return ResponseUtil.response("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.response("Error when try to Save/Update Point", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public boolean saveFromConsumer(Point point, Channel channel, long deliveryTag) {
+        RabbitUtil.acknowledge(channel, deliveryTag);
+        Point saveIt = pointRepository.save(point);
+        return saveIt.getId() > 0;
+    }
+
+    @Override
+    public boolean updateFromConsumer(Point point, Channel channel, long deliveryTag) {
+        RabbitUtil.acknowledge(channel, deliveryTag);
+        Point updateIt = pointRepository.save(point);
+        return updateIt.getId() > 0;
     }
 
     @Override
     public ResponseEntity<?> findAll() {
         List<Point> points = pointRepository.findAll();
         if (points.size() > 0) {
-            return new ResponseEntity<>(points, HttpStatus.OK);
+            return ResponseUtil.response(points, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("no Point found", HttpStatus.NOT_FOUND);
+            return ResponseUtil.response("Data not found", HttpStatus.NOT_FOUND);
         }
     }
 

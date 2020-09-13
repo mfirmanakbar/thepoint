@@ -37,7 +37,7 @@ public class PointValidator {
         ArrayList<String> errors = new ArrayList<>();
 
         if (request.getPoint().compareTo(BigInteger.ZERO) == 0) {
-            errors.add("User Point can't be zero");
+            errors.add("User's Point can't be Zero");
         }
 
         return errors;

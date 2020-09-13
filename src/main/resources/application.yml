@@ -7,3 +7,11 @@ spring:
     url: "jdbc:postgresql://localhost:5432/point_system_db"
     username:
     password:
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: 9uGp@iRB8g3VsQU
+    listener:
+      simple:
+        acknowledge-mode: manual
